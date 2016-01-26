@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>JustSayingIflo</id>
+        <version>0.0.1</version>
+        <authors>JustSaying</authors>
+        <owners></owners>
+        <projectUrl>https://github.com/Intelliflo/justsaying</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>JustSaying</description>
+        <releaseNotes></releaseNotes>
+        <copyright></copyright>
+        <tags>JustSaying</tags>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System" targetFramework=".NETFramework4.0" />
+        </frameworkAssemblies>
+    </metadata>
+    <files>
+        <file src="JustSaying\bin\Release\JustSaying.dll" target="lib/net40/JustSaying.dll" />
+		<file src="JustSaying\bin\Release\JustSaying.AwsTools.dll" target="lib/net40/JustSaying.AwsTools.dll" />
+		<file src="JustSaying\bin\Release\JustSaying.Messaging.dll" target="lib/net40/JustSaying.Messaging.dll" />
+    </files>
+</package>
