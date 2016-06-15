@@ -11,7 +11,7 @@ namespace JustSaying.AwsTools
 
         public DefaultAwsClientFactory()
         {
-            credentials = new StoredProfileAWSCredentials("default");
+            credentials = new StoredProfileAWSCredentials("justsaying.integration");
         }
 
         public DefaultAwsClientFactory(AWSCredentials customCredentials)

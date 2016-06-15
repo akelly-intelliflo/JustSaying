@@ -5,6 +5,6 @@
         /// <summary>
         /// Use "default" AWS profile for running integration tests
         /// </summary>
-        public static string AwsProfileName = "default";
+        public static string AwsProfileName = "justsaying.integration";
     }
 }
