@@ -32,17 +32,18 @@ namespace Consumer
 
     class TestHandlerResolver : IHandlerResolver 
     {
-        public IEnumerable<IHandlerAsync<T>> ResolveHandlers<T>() where T : Message
+        public IEnumerable<IHandlerAsync<T>> ResolveHandlers<T>()
         {
             yield return new ConsoleHandler<T>();
         }
     }
 
-    class ConsoleHandler<T> : IHandlerAsync<T> where T : Message
+    class ConsoleHandler<T> : IHandlerAsync<T>
     {
         public Task<bool> Handle(T message)
         {
-            Console.WriteLine($"New message: {message.Id}");
+            var msg = message as Message;
+            Console.WriteLine($"New message: {msg.Id}");
             return Task.FromResult(true);
         }
     }
