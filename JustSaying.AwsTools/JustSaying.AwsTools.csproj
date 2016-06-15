@@ -63,8 +63,10 @@
     <Compile Include="MessageHandling\MessageDispatcher.cs" />
     <Compile Include="MessageHandling\MessageHandlerWrapper.cs" />
     <Compile Include="QueueCreation\AmazonQueueCreator.cs" />
+    <Compile Include="QueueCreation\IQueueCreator.cs" />
     <Compile Include="QueueCreation\IRegionResourceCache.cs" />
     <Compile Include="QueueCreation\IVerifyAmazonQueues.cs" />
+    <Compile Include="QueueCreation\QueueCreator.cs" />
     <Compile Include="QueueCreation\RedrivePolicy.cs" />
     <Compile Include="QueueCreation\RegionResourceCache.cs" />
     <Compile Include="QueueCreation\SqsBasicConfiguration.cs" />

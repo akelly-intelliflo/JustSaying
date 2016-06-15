@@ -5,7 +5,17 @@ namespace JustSaying.AwsTools.QueueCreation
 {
     public interface IVerifyAmazonQueues
     {
-        SqsQueueByName EnsureTopicExistsWithQueueSubscribed(string region, IMessageSerialisationRegister serialisationRegister, SqsReadConfiguration queueConfig);
-        SqsQueueByName EnsureQueueExists(string region, SqsReadConfiguration queueConfig);
+        /// <summary>
+        /// Creates sqs queue if not exists.
+        /// Creates sns topic if not exists.
+        /// 
+        /// Subscribes queue to topic
+        /// </summary>
+        ISqsQueue EnsureTopicExistsWithQueueSubscribed(string region, IMessageSerialisationRegister serialisationRegister, SqsReadConfiguration queueConfig);
+
+        /// <summary>
+        /// Creates sqs queue if not exists
+        /// </summary>
+        ISqsQueue EnsureQueueExists(string region, ISqsQueueConfig queueConfig);
     }
 }

@@ -18,6 +18,7 @@ namespace JustSaying.AwsTools
             ErrorQueue = null;
         }
 
+        /*
         protected override Dictionary<string, string> GetCreateQueueAttributes(SqsBasicConfiguration queueConfig)
         {
             return new Dictionary<string, string>
@@ -26,6 +27,9 @@ namespace JustSaying.AwsTools
                 { SQSConstants.ATTRIBUTE_VISIBILITY_TIMEOUT  , JustSayingConstants.DEFAULT_VISIBILITY_TIMEOUT.ToString(CultureInfo.InvariantCulture)},
             };
         }
+        */
+
+            /*
 
         protected internal override void UpdateQueueAttribute(SqsBasicConfiguration queueConfig)
         {
@@ -55,5 +59,6 @@ namespace JustSaying.AwsTools
         {
             return MessageRetentionPeriod != queueConfig.ErrorQueueRetentionPeriodSeconds;
         }
+        */
     }
 }

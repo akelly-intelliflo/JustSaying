@@ -1,12 +1,24 @@
 using System;
 using System.Configuration;
+using Amazon;
 using JustSaying.Messaging.MessageProcessingStrategies;
 
 namespace JustSaying.AwsTools.QueueCreation
 {
     public enum SubscriptionType { ToTopic, PointToPoint };
 
-    public class SqsReadConfiguration : SqsBasicConfiguration
+    public interface ISqsQueueConfig
+    {
+        RegionEndpoint Region { get; }
+        int RetryCountBeforeSendingToErrorQueue { get; }
+        string QueueName { get; }
+        bool ErrorQueueOptOut { get; }
+        int MessageRetentionSeconds { get; }
+        int VisibilityTimeoutSeconds { get; }
+        int DeliveryDelaySeconds { get; }
+    }
+
+    public class SqsReadConfiguration : SqsBasicConfiguration, ISqsQueueConfig
     {
         public SqsReadConfiguration(SubscriptionType subscriptionType)
         {
@@ -21,6 +33,11 @@ namespace JustSaying.AwsTools.QueueCreation
 
         public string BaseQueueName { get; set; }
         public string QueueName { get; set; }
+
+        /// <summary>
+        /// TODO - not set anywhere
+        /// </summary>
+        public RegionEndpoint Region { get; }
 
         public string BaseTopicName { get; set; }
         public string Topic { get; set; }

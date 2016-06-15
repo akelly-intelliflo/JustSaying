@@ -20,6 +20,7 @@ namespace JustSaying.AwsTools.MessageHandling
             ErrorQueue = new ErrorQueue(region, queueName, client);
         }
 
+        /*
         public override bool Create(SqsBasicConfiguration queueConfig, int attempt = 0)
         {
             if (NeedErrorQueue(queueConfig) && !ErrorQueue.Exists())
@@ -28,12 +29,14 @@ namespace JustSaying.AwsTools.MessageHandling
             }
             return base.Create(queueConfig, attempt);
         }
+        
 
         private static bool NeedErrorQueue(SqsBasicConfiguration queueConfig)
         {
             return !queueConfig.ErrorQueueOptOut;
-        }
+        }*/
 
+            /*
         public override void Delete()
         {
             if(ErrorQueue != null)
@@ -60,38 +63,9 @@ namespace JustSaying.AwsTools.MessageHandling
                 }
             }
         }
+        */
 
-        public void EnsureQueueAndErrorQueueExistAndAllAttributesAreUpdated(SqsBasicConfiguration queueConfig)
-        {
-            if (!Exists())
-                Create(queueConfig);
-            else
-            {
-                UpdateQueueAttribute(queueConfig);
-            }
-
-            //Create an error queue for existing queues if they don't already have one
-            if (ErrorQueue != null && NeedErrorQueue(queueConfig))
-            {
-                var errorQueueConfig = new SqsReadConfiguration(SubscriptionType.ToTopic)
-                {
-                    ErrorQueueRetentionPeriodSeconds = queueConfig.ErrorQueueRetentionPeriodSeconds,
-                    ErrorQueueOptOut = true
-                };
-                if (!ErrorQueue.Exists())
-                {
-
-                    ErrorQueue.Create(errorQueueConfig);
-                }
-                else
-                {
-                    ErrorQueue.UpdateQueueAttribute(errorQueueConfig);
-                }
-            }
-            UpdateRedrivePolicy(new RedrivePolicy(queueConfig.RetryCountBeforeSendingToErrorQueue, ErrorQueue.Arn));
-
-        }
-
+        /*
         protected override Dictionary<string, string> GetCreateQueueAttributes(SqsBasicConfiguration queueConfig)
         {
             var policy = new Dictionary<string, string>
@@ -107,6 +81,7 @@ namespace JustSaying.AwsTools.MessageHandling
 
             return policy;
         }
+        */
 
         private bool RedrivePolicyNeedsUpdating(RedrivePolicy requestedRedrivePolicy)
         {

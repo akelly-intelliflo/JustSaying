@@ -13,6 +13,7 @@ namespace JustSaying.AwsTools.MessageHandling
             Url = queueUrl;
         }
 
+        /*
         public override bool Exists()
         {
             var result = Client.ListQueues(new ListQueuesRequest());
@@ -25,5 +26,6 @@ namespace JustSaying.AwsTools.MessageHandling
 
             return false;
         }
+        */
     }
 }

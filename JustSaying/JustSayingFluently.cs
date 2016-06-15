@@ -290,9 +290,9 @@ namespace JustSaying
             return this;
         }
 
-        private void CreateSubscriptionListener<T>(string region, SqsQueueBase queue) where T : Message
+        private void CreateSubscriptionListener<T>(string region, ISqsQueue queue) where T : Message
         {
-            var sqsSubscriptionListener = new SqsNotificationListener(queue, Bus.SerialisationRegister, Bus.Monitor, _subscriptionConfig.OnError, Bus.MessageLock);
+            var sqsSubscriptionListener = new SqsNotificationListener(queue, Bus.SerialisationRegister, Bus.Monitor, _awsClientFactoryProxy.GetAwsClientFactory(), _subscriptionConfig.OnError, Bus.MessageLock);
             sqsSubscriptionListener.Subscribers.Add(new Subscriber(typeof(T)));
             Bus.AddNotificationSubscriber(region, sqsSubscriptionListener);
 

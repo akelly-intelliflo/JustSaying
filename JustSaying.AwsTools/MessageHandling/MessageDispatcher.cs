@@ -12,7 +12,8 @@ namespace JustSaying.AwsTools.MessageHandling
 {
     public class MessageDispatcher
     {
-        private readonly SqsQueueBase _queue;
+        private readonly ISqsQueue _queue;
+        private readonly IAwsClientFactory _clientFactory;
         private readonly IMessageSerialisationRegister _serialisationRegister;
         private readonly IMessageMonitor _messagingMonitor;
         private readonly Action<Exception, SQSMessage> _onError;
@@ -21,13 +22,15 @@ namespace JustSaying.AwsTools.MessageHandling
         private static readonly Logger Log = LogManager.GetLogger("JustSaying");
 
         public MessageDispatcher(
-            SqsQueueBase queue, 
+            ISqsQueue queue, 
+            IAwsClientFactory clientFactory,
             IMessageSerialisationRegister serialisationRegister,
             IMessageMonitor messagingMonitor,
             Action<Exception, SQSMessage> onError,
             HandlerMap handlerMap)
         {
             _queue = queue;
+            _clientFactory = clientFactory;
             _serialisationRegister = serialisationRegister;
             _messagingMonitor = messagingMonitor;
             _onError = onError;
@@ -123,7 +126,7 @@ namespace JustSaying.AwsTools.MessageHandling
                 QueueUrl = _queue.Url,
                 ReceiptHandle = receiptHandle
             };
-            _queue.Client.DeleteMessage(deleteRequest);
+            _clientFactory.GetSqsClient(this._queue.Region).DeleteMessage(deleteRequest);
         }
     }
 }

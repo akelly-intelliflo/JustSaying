@@ -18,9 +18,10 @@ namespace JustSaying.AwsTools.MessageHandling
 {
     public class SqsNotificationListener : INotificationSubscriber
     {
-        private readonly SqsQueueBase _queue;
+        private readonly ISqsQueue _queue;
         private readonly IMessageMonitor _messagingMonitor;
 
+        private readonly IAwsClientFactory _awsClientFactory;
         private readonly MessageDispatcher _messageDispatcher;
         private readonly MessageHandlerWrapper _messageHandlerWrapper;
         private IMessageProcessingStrategy _messageProcessingStrategy;
@@ -30,19 +31,19 @@ namespace JustSaying.AwsTools.MessageHandling
         private static readonly Logger Log = LogManager.GetLogger("JustSaying");
 
         public SqsNotificationListener(
-            SqsQueueBase queue,
+            ISqsQueue queue,
             IMessageSerialisationRegister serialisationRegister,
-            IMessageMonitor messagingMonitor,
-            Action<Exception, Amazon.SQS.Model.Message> onError = null,
+            IMessageMonitor messagingMonitor, IAwsClientFactory awsClientFactory, Action<Exception, Amazon.SQS.Model.Message> onError = null,
             IMessageLock messageLock = null)
         {
             _queue = queue;
             _messagingMonitor = messagingMonitor;
+            _awsClientFactory = awsClientFactory;
             onError = onError ?? ((ex,message) => { });
             
             _messageProcessingStrategy = new DefaultThrottledThroughput(_messagingMonitor);
             _messageHandlerWrapper = new MessageHandlerWrapper(messageLock, _messagingMonitor);
-            _messageDispatcher = new MessageDispatcher(queue, serialisationRegister, messagingMonitor, onError, _handlerMap);
+            _messageDispatcher = new MessageDispatcher(queue, _awsClientFactory, serialisationRegister, messagingMonitor, onError, _handlerMap);
 
             Subscribers = new Collection<ISubscriber>();
         }
@@ -165,7 +166,8 @@ namespace JustSaying.AwsTools.MessageHandling
                         MaxNumberOfMessages = numberOfMessagesToReadFromSqs,
                         WaitTimeSeconds = 20
                     };
-                var sqsMessageResponse = await _queue.Client.ReceiveMessageAsync(request, ct);
+                var client = _awsClientFactory.GetSqsClient(_queue.Region);
+                var sqsMessageResponse = await client.ReceiveMessageAsync(request, ct);
 
                 watch.Stop();
 

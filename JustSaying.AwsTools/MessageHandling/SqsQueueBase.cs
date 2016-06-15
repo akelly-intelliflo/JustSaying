@@ -8,7 +8,15 @@ using NLog;
 
 namespace JustSaying.AwsTools.MessageHandling
 {
-    public abstract class SqsQueueBase
+    public interface ISqsQueue
+    {
+        string Arn { get; }
+        string Url { get; }
+        string QueueName { get; }
+        RegionEndpoint Region { get; }
+    }
+
+    public abstract class SqsQueueBase : ISqsQueue
     {
         public string Arn { get; protected set; }
         public string Url { get; protected set; }
@@ -29,8 +37,9 @@ namespace JustSaying.AwsTools.MessageHandling
             Client = client;
         }
 
-        public abstract bool Exists();
+        //public abstract bool Exists();
 
+            /*
         public virtual void Delete()
         {
             Arn = null;
@@ -119,5 +128,6 @@ namespace JustSaying.AwsTools.MessageHandling
             }
             return RedrivePolicy.ConvertFromString(queueAttributes[JustSayingConstants.ATTRIBUTE_REDRIVE_POLICY]);
         }
+        */
     }
 }
