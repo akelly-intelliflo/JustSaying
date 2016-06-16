@@ -36,12 +36,15 @@ namespace JustSaying.AwsTools.MessageHandling
             return false;
         }
         */
+
+            /*
         private static bool Matches(string queueUrl, string queueName)
         {
             return queueUrl.Substring(queueUrl.LastIndexOf("/", StringComparison.InvariantCulture) + 1)
                 .Equals(queueName, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        */
         /*
         public virtual bool Create(SqsBasicConfiguration queueConfig, int attempt = 0)
         {

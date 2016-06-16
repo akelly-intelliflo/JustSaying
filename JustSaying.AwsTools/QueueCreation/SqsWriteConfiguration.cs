@@ -1,8 +1,10 @@
 using System.Configuration;
+using Amazon;
+using JustSaying.AwsTools.MessageHandling;
 
 namespace JustSaying.AwsTools.QueueCreation
 {
-    public class SqsWriteConfiguration : SqsBasicConfiguration
+    public class SqsWriteConfiguration : SqsBasicConfiguration, ISqsQueueConfig
     {
         public SqsWriteConfiguration()
         {
@@ -12,7 +14,13 @@ namespace JustSaying.AwsTools.QueueCreation
             RetryCountBeforeSendingToErrorQueue = JustSayingConstants.DEFAULT_HANDLER_RETRY_COUNT;
         }
 
+        public RegionEndpoint Region { get; set; }
         public string QueueName { get; set; }
+        public ISqsQueue ErrorQueue { get; set; }
+        public ISqsQueueConfig Clone()
+        {
+            return this.MemberwiseClone() as ISqsQueueConfig;
+        }
 
         public override void Validate()
         {

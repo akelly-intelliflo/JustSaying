@@ -1,6 +1,7 @@
 using System;
 using System.Configuration;
 using Amazon;
+using JustSaying.AwsTools.MessageHandling;
 using JustSaying.Messaging.MessageProcessingStrategies;
 
 namespace JustSaying.AwsTools.QueueCreation
@@ -9,16 +10,27 @@ namespace JustSaying.AwsTools.QueueCreation
 
     public interface ISqsQueueConfig
     {
-        RegionEndpoint Region { get; }
+        RegionEndpoint Region { get; set; }
         int RetryCountBeforeSendingToErrorQueue { get; }
-        string QueueName { get; }
-        bool ErrorQueueOptOut { get; }
+        string QueueName { get; set; }
+        bool ErrorQueueOptOut { get; set; }
         int MessageRetentionSeconds { get; }
         int VisibilityTimeoutSeconds { get; }
         int DeliveryDelaySeconds { get; }
+        ISqsQueue ErrorQueue { get; set; }
+        int ErrorQueueRetentionPeriodSeconds { get; set; }
+        ISqsQueueConfig Clone();
     }
 
-    public class SqsReadConfiguration : SqsBasicConfiguration, ISqsQueueConfig
+    public interface ISnsTopicConfig
+    {
+        RegionEndpoint Region { get; set; }
+        string Topic { get; set; }
+        string PublishEndpoint { get; set; }
+    }
+
+
+    public class SqsReadConfiguration : SqsBasicConfiguration, ISqsQueueConfig, ISnsTopicConfig
     {
         public SqsReadConfiguration(SubscriptionType subscriptionType)
         {
@@ -33,11 +45,16 @@ namespace JustSaying.AwsTools.QueueCreation
 
         public string BaseQueueName { get; set; }
         public string QueueName { get; set; }
+        public ISqsQueueConfig Clone()
+        {
+            return MemberwiseClone() as ISqsQueueConfig;
+        }
 
         /// <summary>
         /// TODO - not set anywhere
         /// </summary>
-        public RegionEndpoint Region { get; }
+        public RegionEndpoint Region { get; set; }
+        public ISqsQueue ErrorQueue { get; set; }
 
         public string BaseTopicName { get; set; }
         public string Topic { get; set; }

@@ -14,6 +14,21 @@ using Message = JustSaying.Models.Message;
 
 namespace JustSaying.AwsTools.MessageHandling
 {
+    public interface ISnsTopic
+    {
+        string Arn { get; set; }
+        string Name { get; set; }
+    }
+
+    public class PlainSnsTopic : ISnsTopic
+    {
+        public string Arn { get; set; }
+        public string Name { get; set; }
+    }
+
+    /// <summary>
+    /// TODO - why is this a publiher??
+    /// </summary>
     public abstract class SnsTopicBase : IMessagePublisher
     {
         private readonly IMessageSerialisationRegister _serialisationRegister; // ToDo: Grrr...why is this here even. GET OUT!

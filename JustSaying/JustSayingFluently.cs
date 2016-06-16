@@ -104,15 +104,21 @@ namespace JustSaying
             foreach (var region in Bus.Config.Regions)
             {
                 var regionEndpoint = RegionEndpoint.GetBySystemName(region);
-                var eventPublisher = new SqsPublisher(
+                config.QueueName = queueName;
+                config.Region = RegionEndpoint.GetBySystemName(region); 
+
+                var queue = this._amazonQueueCreator.EnsureQueueAndErrorQueueExists(config);
+                var eventPublisher = new PlainSqsPublisher(queue, _awsClientFactoryProxy.GetAwsClientFactory().GetSqsClient(regionEndpoint), Bus.SerialisationRegister);
+
+                /*var eventPublisher = new PlainSqsPublisher(
                     regionEndpoint,
                     queueName,
                     _awsClientFactoryProxy.GetAwsClientFactory().GetSqsClient(regionEndpoint),
                     config.RetryCountBeforeSendingToErrorQueue,
                     Bus.SerialisationRegister);
-
-                if (!eventPublisher.Exists())
-                    eventPublisher.Create(config);
+                    */
+                //if (!eventPublisher.Exists())
+                //    eventPublisher.Create(config);
 
                 Bus.AddMessagePublisher<T>(eventPublisher, region);
             }
@@ -267,7 +273,11 @@ namespace JustSaying
 
             foreach (var region in Bus.Config.Regions)
             {
-                var queue = _amazonQueueCreator.EnsureTopicExistsWithQueueSubscribed(region, Bus.SerialisationRegister, _subscriptionConfig);
+                _subscriptionConfig.Region = RegionEndpoint.GetBySystemName(region);
+                var queue = _amazonQueueCreator.EnsureQueueAndErrorQueueExists(_subscriptionConfig);
+
+                // TODO - do we want to log topic arn here?
+                var topic = _amazonQueueCreator.EnsureTopicExistsWithQueueSubscribed(queue, Bus.SerialisationRegister, _subscriptionConfig);
                 CreateSubscriptionListener<T>(region, queue);
                 Log.Info(string.Format("Created SQS topic subscription - Topic: {0}, QueueName: {1}", _subscriptionConfig.Topic, _subscriptionConfig.QueueName));
             }
@@ -282,7 +292,8 @@ namespace JustSaying
 
             foreach (var region in Bus.Config.Regions)
             {
-                var queue = _amazonQueueCreator.EnsureQueueExists(region, _subscriptionConfig);
+                _subscriptionConfig.Region = RegionEndpoint.GetBySystemName(region);
+                var queue = _amazonQueueCreator.EnsureQueueAndErrorQueueExists(_subscriptionConfig);
                 CreateSubscriptionListener<T>(region, queue);
                 Log.Info(string.Format("Created SQS subscriber - MessageName: {0}, QueueName: {1}", messageTypeName, _subscriptionConfig.QueueName));
             }

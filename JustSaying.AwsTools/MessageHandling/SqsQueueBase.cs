@@ -14,6 +14,25 @@ namespace JustSaying.AwsTools.MessageHandling
         string Url { get; }
         string QueueName { get; }
         RegionEndpoint Region { get; }
+        int MessageRetentionPeriod { get; set; }
+        int VisibilityTimeout { get; set; }
+        int DeliveryDelay { get; set; }
+        RedrivePolicy RedrivePolicy { get; set; }
+    }
+
+    /// <summary>
+    /// TODO rename
+    /// </summary>
+    class PlainSqsQueue : ISqsQueue
+    {
+        public string Arn { get; set; }
+        public string Url { get; set; }
+        public string QueueName { get; set; }
+        public RegionEndpoint Region { get; set; }
+        public int MessageRetentionPeriod { get; set; }
+        public int VisibilityTimeout { get; set; }
+        public int DeliveryDelay { get; set; }
+        public RedrivePolicy RedrivePolicy { get; set; }
     }
 
     public abstract class SqsQueueBase : ISqsQueue
@@ -24,10 +43,10 @@ namespace JustSaying.AwsTools.MessageHandling
         public string QueueName { get; protected set; }
         public RegionEndpoint Region { get; protected set; }
         public ErrorQueue ErrorQueue { get; protected set; }
-        internal int MessageRetentionPeriod { get; set; }
-        internal int VisibilityTimeout { get; set; }
-        internal int DeliveryDelay { get; set; }
-        internal RedrivePolicy RedrivePolicy { get; set; }
+        public int MessageRetentionPeriod { get; set; }
+        public int VisibilityTimeout { get; set; }
+        public int DeliveryDelay { get; set; }
+        public RedrivePolicy RedrivePolicy { get; set; }
         
         private static readonly Logger Log = LogManager.GetLogger("JustSaying");
 

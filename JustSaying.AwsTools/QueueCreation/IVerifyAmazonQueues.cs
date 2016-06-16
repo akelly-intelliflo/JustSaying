@@ -6,16 +6,15 @@ namespace JustSaying.AwsTools.QueueCreation
     public interface IVerifyAmazonQueues
     {
         /// <summary>
-        /// Creates sqs queue if not exists.
         /// Creates sns topic if not exists.
         /// 
         /// Subscribes queue to topic
         /// </summary>
-        ISqsQueue EnsureTopicExistsWithQueueSubscribed(string region, IMessageSerialisationRegister serialisationRegister, SqsReadConfiguration queueConfig);
+        ISnsTopic EnsureTopicExistsWithQueueSubscribed(ISqsQueue queue , IMessageSerialisationRegister serialisationRegister, ISnsTopicConfig queueConfig);
 
         /// <summary>
         /// Creates sqs queue if not exists
         /// </summary>
-        ISqsQueue EnsureQueueExists(string region, ISqsQueueConfig queueConfig);
+        ISqsQueue EnsureQueueAndErrorQueueExists(ISqsQueueConfig queueConfig);
     }
 }
