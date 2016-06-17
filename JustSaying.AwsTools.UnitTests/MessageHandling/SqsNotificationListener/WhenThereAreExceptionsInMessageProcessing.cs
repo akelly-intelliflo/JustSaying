@@ -6,6 +6,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using JustBehave;
 using JustSaying.AwsTools.MessageHandling;
+using JustSaying.AwsTools.UnitTests.MessageHandling.Sqs;
 using JustSaying.Messaging.MessageSerialisation;
 using JustSaying.Messaging.Monitoring;
 using NSubstitute;
@@ -19,15 +20,17 @@ namespace JustSaying.AwsTools.UnitTests.MessageHandling.SqsNotificationListener
         private readonly IAmazonSQS _sqs = Substitute.For<IAmazonSQS>();
         private readonly IMessageSerialisationRegister _serialisationRegister = 
             Substitute.For<IMessageSerialisationRegister>();
-        
+        private IAwsClientFactory _awsClientFactory;
         private int _callCount;
 
         protected override AwsTools.MessageHandling.SqsNotificationListener CreateSystemUnderTest()
         {
+            _awsClientFactory = new MockedAwsClientFactory(_sqs);
             return new AwsTools.MessageHandling.SqsNotificationListener(
-                new SqsQueueByUrl(RegionEndpoint.EUWest1, "", _sqs), 
+                new PlainSqsQueue(RegionEndpoint.EUWest1, ""), 
                 _serialisationRegister, 
-                Substitute.For<IMessageMonitor>());
+                Substitute.For<IMessageMonitor>(), 
+                _awsClientFactory);
         }
 
         protected override void Given()

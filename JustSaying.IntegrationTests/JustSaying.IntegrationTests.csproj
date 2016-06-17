@@ -40,10 +40,6 @@
       <HintPath>..\packages\AWSSDK.2.3.52.0\lib\net45\AWSSDK.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="JustBehave, Version=1.0.0.12, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\JustBehave.1.0.0.12\lib\net452\JustBehave.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.2.3\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
@@ -123,6 +119,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\JustBehave\src\JustBehave\JustBehave.csproj">
+      <Project>{226465bd-c58a-4723-aa6e-8c48abbad4c7}</Project>
+      <Name>JustBehave</Name>
+    </ProjectReference>
     <ProjectReference Include="..\JustSaying.AwsTools\JustSaying.AwsTools.csproj">
       <Project>{cbf2110b-c3a4-45e8-bbd6-301d77567043}</Project>
       <Name>JustSaying.AwsTools</Name>

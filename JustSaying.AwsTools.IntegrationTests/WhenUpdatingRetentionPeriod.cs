@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using JustSaying.AwsTools.MessageHandling;
 using JustSaying.AwsTools.QueueCreation;
 using NUnit.Framework;
 
@@ -18,16 +20,19 @@ namespace JustSaying.AwsTools.IntegrationTests
 
         protected override void When()
         {
+            var config = GetQueueConfig();
+            config.MessageRetentionSeconds = _oldRetentionPeriod;
+            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(config);
 
-            SystemUnderTest.Create(new SqsBasicConfiguration { MessageRetentionSeconds = _oldRetentionPeriod });
 
-            SystemUnderTest.UpdateQueueAttribute(new SqsBasicConfiguration { MessageRetentionSeconds = _newRetentionPeriod });
+            config.MessageRetentionSeconds = _newRetentionPeriod;
+            SystemUnderTest.Update(queue, config);
         }
 
         [Test]
         public void TheRedrivePolicyIsUpdatedWithTheNewValue()
         {
-            Assert.AreEqual(_newRetentionPeriod, SystemUnderTest.MessageRetentionPeriod);
+            Assert.AreEqual(_newRetentionPeriod, queue.MessageRetentionPeriod);
         }
     }
 }

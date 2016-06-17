@@ -26,15 +26,21 @@ namespace JustSaying.AwsTools.IntegrationTests
         {
             var locker = new object();
             var awsQueueClient = CreateMeABus.DefaultClientFactory().GetSqsClient(RegionEndpoint.EUWest1);
- 
-            var q = new SqsQueueByName(RegionEndpoint.EUWest1, "throttle_test", awsQueueClient, 1);
-            if (!q.Exists())
+
+            var awsClientFactoryProxy = new AwsClientFactoryProxy(() => CreateMeABus.DefaultClientFactory());
+            var queueCreator = new QueueCreator(awsClientFactoryProxy);
+
+            var config = new SqsQueueConfig(RegionEndpoint.EUWest1, "throttle_test");
+            var q = queueCreator.Find(config);
+
+            if (q == null)
             {
-                q.Create(new SqsBasicConfiguration());
+                q = queueCreator.Create(config);
                 Thread.Sleep(TimeSpan.FromMinutes(1));  // wait 60 secs for queue creation to be guaranteed completed by aws. :(
             }
 
-            Assert.True(q.Exists());
+
+            Assert.IsNotEmpty(queueCreator.Exists(config));
 
             Console.WriteLine("{0} - Adding {1} messages to the queue.", DateTime.Now, throttleMessageCount);
 
@@ -66,12 +72,12 @@ namespace JustSaying.AwsTools.IntegrationTests
             handler.Handle(null).ReturnsForAnyArgs(true).AndDoes(x => {lock (locker) { handleCount++; } });
 
             serialisations.DeserializeMessage(string.Empty).ReturnsForAnyArgs(new GenericMessage());
-            var listener = new SqsNotificationListener(q, serialisations, monitor);
+            var listener = new SqsNotificationListener(q, serialisations, monitor, awsClientFactoryProxy.GetAwsClientFactory());
             listener.AddMessageHandler(() => handler);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            listener.Listen();
+            listener.Listen();;
             var waitCount = 0;
             do
             {

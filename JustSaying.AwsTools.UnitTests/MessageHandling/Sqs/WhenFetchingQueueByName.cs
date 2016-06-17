@@ -3,7 +3,7 @@ using Amazon;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using JustBehave;
-using JustSaying.AwsTools.MessageHandling;
+using JustSaying.AwsTools.QueueCreation;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -13,6 +13,8 @@ namespace JustSaying.AwsTools.UnitTests.MessageHandling.Sqs
     {
         private IAmazonSQS _client;
         private const int RetryCount = 3;
+        private IAwsClientFactoryProxy _factoryProxy;
+        private IQueueCreator _queueCreator;
 
         [SetUp]
         protected void SetUp()
@@ -25,27 +27,27 @@ namespace JustSaying.AwsTools.UnitTests.MessageHandling.Sqs
                 {
                     Attributes = new Dictionary<string, string>() { { "QueueArn", "something:some-queue-name" } }
                 });
+
+            _factoryProxy = new AwsClientFactoryProxy(() => new MockedAwsClientFactory(_client));
+            _queueCreator = new QueueCreator(_factoryProxy);
         }
 
         [Then]
         public void IncorrectQueueNameDoNotMatch()
         {
-            var sqsQueueByName = new SqsQueueByName(RegionEndpoint.EUWest1, "some-queue-name1", _client, RetryCount);
-            Assert.IsFalse(sqsQueueByName.Exists());
+            Assert.IsEmpty(_queueCreator.Exists(RegionEndpoint.EUWest1, "some-queue-name1"));
         }
 
         [Then]
         public void IncorrectPartialQueueNameDoNotMatch()
         {
-            var sqsQueueByName = new SqsQueueByName(RegionEndpoint.EUWest1, "some-queue", _client, RetryCount);
-            Assert.IsFalse(sqsQueueByName.Exists());
+            Assert.IsEmpty(_queueCreator.Exists(RegionEndpoint.EUWest1, "some-queue"));
         }
 
         [Then]
         public void CorrectQueueNameShouldMatch()
         {
-            var sqsQueueByName = new SqsQueueByName(RegionEndpoint.EUWest1, "some-queue-name", _client, RetryCount);
-            Assert.IsTrue(sqsQueueByName.Exists());
+            Assert.IsNotEmpty(_queueCreator.Exists(RegionEndpoint.EUWest1, "some-queue-name"));
         }
     }
 }

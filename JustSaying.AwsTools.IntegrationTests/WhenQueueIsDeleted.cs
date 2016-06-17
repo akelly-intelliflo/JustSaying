@@ -9,17 +9,15 @@ namespace JustSaying.AwsTools.IntegrationTests
     {
         protected override void When()
         {
-            SystemUnderTest.Create(
-                new SqsReadConfiguration(SubscriptionType.ToTopic), 
-                attempt:600);
-            SystemUnderTest.Delete();
+            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(GetQueueConfig());
+            SystemUnderTest.Delete(queue);
         }
 
         [Test]
         public async Task TheErrorQueueIsDeleted()
         {
             await Patiently.AssertThatAsync(
-                () => !SystemUnderTest.ErrorQueue.Exists());
+                () => queue.ErrorQueue == null);
         }
     }
 }

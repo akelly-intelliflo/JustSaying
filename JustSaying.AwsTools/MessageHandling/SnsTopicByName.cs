@@ -52,7 +52,7 @@ namespace JustSaying.AwsTools.MessageHandling
             Log.Info("Checking if topic '{0}' exists", topicConfig.Topic);
             var topic = client.FindTopic(topicConfig.Topic);
 
-            if (string.IsNullOrWhiteSpace(topic.TopicArn))
+            if (topic == null || string.IsNullOrWhiteSpace(topic.TopicArn))
                 return null;
 
             return new PlainSnsTopic()
@@ -63,7 +63,7 @@ namespace JustSaying.AwsTools.MessageHandling
         }
     }
 
-    public class SnsTopicByName : SnsTopicBase
+    public class SnsTopicByName : SnsTopicBase2
     {
         public string TopicName { get; private set; }
         private static readonly Logger Log = LogManager.GetLogger("JustSaying");

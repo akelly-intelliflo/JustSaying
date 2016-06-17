@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BasicHandlingThrottlingTest.cs" />
+    <Compile Include="NullCache.cs" />
     <Compile Include="ProxyAwsClientFactory.cs" />
     <Compile Include="GlobalSetup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -78,14 +78,14 @@ namespace Consumer
                 .WithMessageHandler<Message9>(handlerResolver)
                 .WithMessageHandler<Message10>(handlerResolver)
                 .WithMessageHandler<Message11>(handlerResolver)
-                .WithMessageHandler<Message12>(handlerResolver)
+                /*.WithMessageHandler<Message12>(handlerResolver)
                 .WithMessageHandler<Message13>(handlerResolver)
                 .WithMessageHandler<Message14>(handlerResolver)
                 .WithMessageHandler<Message15>(handlerResolver)
                 .WithMessageHandler<Message16>(handlerResolver)
                 .WithMessageHandler<Message17>(handlerResolver)
                 .WithMessageHandler<Message18>(handlerResolver)
-                .WithMessageHandler<Message19>(handlerResolver)
+                .WithMessageHandler<Message19>(handlerResolver)*/
                 .WithSnsMessagePublisher<Message1>()
                 .WithSnsMessagePublisher<Message2>()
 

@@ -87,6 +87,10 @@ namespace JustSaying.AwsTools.IntegrationTests
                 .ReturnsForAnyArgs(r => innerClient.ReceiveMessageAsync(r.Arg<ReceiveMessageRequest>()))
                 .AndDoes(r => Increment("ReceiveMessageAsync", r.Arg<ReceiveMessageRequest>().QueueUrl, r.Arg<ReceiveMessageRequest>()));
 
+            client.SetQueueAttributes(Arg.Any<SetQueueAttributesRequest>())
+                .ReturnsForAnyArgs(r => innerClient.SetQueueAttributes(r.Arg<SetQueueAttributesRequest>()))
+                .AndDoes(r => Increment("SetQueueAttributes", r.Arg<SetQueueAttributesRequest>().QueueUrl, r.Arg<SetQueueAttributesRequest>()));
+
             return client;
         }
     }

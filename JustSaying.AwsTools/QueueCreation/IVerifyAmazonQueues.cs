@@ -16,5 +16,7 @@ namespace JustSaying.AwsTools.QueueCreation
         /// Creates sqs queue if not exists
         /// </summary>
         ISqsQueue EnsureQueueAndErrorQueueExists(ISqsQueueConfig queueConfig);
+
+        void Delete(ISqsQueue queue);
     }
 }

@@ -9,13 +9,13 @@ namespace JustSaying.AwsTools.IntegrationTests
     {
         protected override void When()
         {
-            SystemUnderTest.Create(new SqsBasicConfiguration(), attempt: 0);
+            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(GetQueueConfig());
         }
 
         [Then]
         public async Task ThereIsNoErrorQueue()
         {
-            await Patiently.AssertThatAsync(() => !SystemUnderTest.ErrorQueue.Exists());
+            await Patiently.AssertThatAsync(() => queue.ErrorQueue == null);
         }
     }
 }

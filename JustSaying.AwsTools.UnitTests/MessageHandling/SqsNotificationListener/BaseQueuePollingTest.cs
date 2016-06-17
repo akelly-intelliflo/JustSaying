@@ -7,6 +7,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using JustBehave;
 using JustSaying.AwsTools.MessageHandling;
+using JustSaying.AwsTools.UnitTests.MessageHandling.Sqs;
 using JustSaying.AwsTools.UnitTests.MessageHandling.SqsNotificationListener.Support;
 using JustSaying.Messaging.MessageHandling;
 using JustSaying.Messaging.MessageSerialisation;
@@ -27,19 +28,21 @@ namespace JustSaying.AwsTools.UnitTests.MessageHandling.SqsNotificationListener
         protected IMessageMonitor Monitor;
         protected IMessageSerialisationRegister SerialisationRegister;
         protected IMessageLock MessageLock;
+        private IAwsClientFactory _awsClientFactory;
         protected readonly string MessageTypeString = typeof(GenericMessage).ToString();
 
         protected override AwsTools.MessageHandling.SqsNotificationListener CreateSystemUnderTest()
         {
-            var queue = new SqsQueueByUrl(RegionEndpoint.EUWest1, QueueUrl, Sqs);
-            return new AwsTools.MessageHandling.SqsNotificationListener(queue, SerialisationRegister, Monitor, null, MessageLock);
+            Sqs = Substitute.For<IAmazonSQS>();
+            _awsClientFactory = new MockedAwsClientFactory(Sqs);
+            var queue = new PlainSqsQueue(RegionEndpoint.EUWest1, QueueUrl);
+            return new AwsTools.MessageHandling.SqsNotificationListener(queue, SerialisationRegister, Monitor, _awsClientFactory, null, MessageLock);
         }
 
         protected override void Given()
         {
             Logging.ToConsole();
 
-            Sqs = Substitute.For<IAmazonSQS>();
             SerialisationRegister = Substitute.For<IMessageSerialisationRegister>();
             Monitor = Substitute.For<IMessageMonitor>();
             Handler = Substitute.For<IHandlerAsync<GenericMessage>>();

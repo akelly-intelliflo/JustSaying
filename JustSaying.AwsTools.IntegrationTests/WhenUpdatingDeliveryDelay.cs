@@ -18,15 +18,19 @@ namespace JustSaying.AwsTools.IntegrationTests
 
         protected override void When()
         {
-            SystemUnderTest.Create(new SqsBasicConfiguration { DeliveryDelaySeconds = _oldDeliveryDelay });
+            var config = GetQueueConfig();
+            config.DeliveryDelaySeconds = _oldDeliveryDelay;
 
-            SystemUnderTest.UpdateQueueAttribute(new SqsBasicConfiguration { DeliveryDelaySeconds = _newDeliveryDelay });
+            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(config);
+
+            config.DeliveryDelaySeconds = _newDeliveryDelay;
+            SystemUnderTest.Update(queue, config);
         }
 
         [Test]
         public void TheDeliveryDelayIsUpdatedWithTheNewValue()
         {
-            Assert.AreEqual(_newDeliveryDelay, SystemUnderTest.DeliveryDelay);
+            Assert.AreEqual(_newDeliveryDelay, queue.DeliveryDelay);
         }
     }
 }

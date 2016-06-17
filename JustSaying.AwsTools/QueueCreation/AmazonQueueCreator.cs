@@ -19,8 +19,21 @@ namespace JustSaying.AwsTools.QueueCreation
     public class AmazonQueueCreator : IVerifyAmazonQueues
     {
         private readonly IAwsClientFactoryProxy _awsClientFactory;
-        private readonly IRegionResourceCache<ISqsQueue> _queueCache = new RegionResourceCache<ISqsQueue>();
-        private readonly IRegionResourceCache<ISnsTopic> _topicCache = new RegionResourceCache<ISnsTopic>();
+        private IRegionResourceCache<ISqsQueue> _queueCache = new RegionResourceCache<ISqsQueue>();
+
+        public IRegionResourceCache<ISqsQueue> QueueCache
+        {
+            get { return _queueCache; }
+            set { _queueCache = value; }
+        }
+
+        public IRegionResourceCache<ISnsTopic> TopicCache
+        {
+            get { return _topicCache; }
+            set { _topicCache = value; }
+        }
+
+        private IRegionResourceCache<ISnsTopic> _topicCache = new RegionResourceCache<ISnsTopic>();
         private readonly IQueueCreator queueCreator;
         private readonly ISnsTopicCreator topicCreator;
 
@@ -51,46 +64,33 @@ namespace JustSaying.AwsTools.QueueCreation
                 return queue;
             }
 
-            var errorQueue = CreateErrorQueue(queueConfig);
-            queueConfig.ErrorQueue = errorQueue;
-
+            ISqsQueue errorQueue = null;
+            if (queueConfig.ErrorQueueOptOut == false)
+            {
+                errorQueue = CreateErrorQueue(queueConfig);
+                queueConfig.ErrorQueue = errorQueue;
+            }
 
             var queueUrl = queueCreator.Exists(queueConfig);
-            queue = string.IsNullOrWhiteSpace(queueUrl) ? queueCreator.CreateQueue(queueConfig) : queueCreator.FindQueue(queueUrl, queueConfig);
+            queue = string.IsNullOrWhiteSpace(queueUrl) ? queueCreator.Create(queueConfig) : queueCreator.Find(queueUrl, queueConfig);
+            queue.ErrorQueue = errorQueue;
 
-            // TODO - merge 2 update attributes statements into one
             if (QueueNeedsUpdating(queue, queueConfig))
-                queueCreator.UpdateAttributes(queue, GetQueueAttributes(queueConfig));
-            if (RedrivePolicyNeedsUpdating(queue, queueConfig))
-                queueCreator.UpdateAttributes(queue, GetRedrivePolicyAttributes(queueConfig, errorQueue));
+            {
+                queueCreator.UpdateAttributes(queue, queueConfig);
+            }
+            if (queueConfig.ErrorQueueOptOut == false && RedrivePolicyNeedsUpdating(queue, queueConfig))
+                queueCreator.UpdateRedrivePolicy(queue, queueConfig, errorQueue);
 
             _queueCache.AddToCache(region.ToString(), queue.QueueName, queue);
             return queue;
         }
 
-        private Dictionary<string, string> GetRedrivePolicyAttributes(ISqsQueueConfig queueConfig, ISqsQueue errorQueue)
-        {
-            return new Dictionary<string, string>
-            {
-                {
-                    JustSayingConstants.ATTRIBUTE_REDRIVE_POLICY, new RedrivePolicy(queueConfig.RetryCountBeforeSendingToErrorQueue, errorQueue.Arn).ToString()
-                }
-            };
-        }
+       
 
         private bool RedrivePolicyNeedsUpdating(ISqsQueue queue, ISqsQueueConfig queueConfig)
         {
             return queue.RedrivePolicy == null || queue.RedrivePolicy.MaximumReceives != queueConfig.RetryCountBeforeSendingToErrorQueue;
-        }
-
-        private Dictionary<string, string> GetQueueAttributes(ISqsQueueConfig queueConfig)
-        {
-            return new Dictionary<string, string>
-            {
-                {JustSayingConstants.ATTRIBUTE_RETENTION_PERIOD, queueConfig.MessageRetentionSeconds.ToString()},
-                {JustSayingConstants.ATTRIBUTE_VISIBILITY_TIMEOUT, queueConfig.VisibilityTimeoutSeconds.ToString()},
-                {JustSayingConstants.ATTRIBUTE_DELIVERY_DELAY, queueConfig.DeliveryDelaySeconds.ToString()}
-            };
         }
 
         private bool QueueNeedsUpdating(ISqsQueue queue, ISqsQueueConfig queueConfig)
@@ -107,10 +107,13 @@ namespace JustSaying.AwsTools.QueueCreation
             errorConfig.ErrorQueueOptOut = true;
 
             var errorQueueUrl = queueCreator.Exists(errorConfig);
-            var errorQueue = string.IsNullOrWhiteSpace(errorQueueUrl) ? queueCreator.CreateQueue(errorConfig) : queueCreator.FindQueue(errorQueueUrl, queueConfig);
+            var errorQueue = string.IsNullOrWhiteSpace(errorQueueUrl) ? queueCreator.Create(errorConfig) : queueCreator.Find(errorQueueUrl, queueConfig);
 
             if (ErrorQueueNeedsUpdating(errorQueue, errorConfig))
+            {
                 queueCreator.UpdateAttributes(errorQueue, GetErrorQueueAttributes(errorConfig));
+                errorQueue.MessageRetentionPeriod = errorConfig.ErrorQueueRetentionPeriodSeconds;
+            }
             return errorQueue;
         }
 
@@ -186,6 +189,32 @@ namespace JustSaying.AwsTools.QueueCreation
                 Attributes = new Dictionary<string, string> { { "Policy", p.ToJson() } }
             };
             amazonSqsClient.SetQueueAttributes(request);
+        }
+
+        public void Delete(ISqsQueue queue)
+        {
+            if (queue.ErrorQueue != null)
+            {
+                queueCreator.Delete(queue.ErrorQueue);
+                queue.ErrorQueue = null;
+            }
+            queueCreator.Delete(queue);
+        }
+
+        public void Update(ISqsQueue queue, ISqsQueueConfig queueConfig)
+        {
+            if (ErrorQueueNeedsUpdating(queue.ErrorQueue, queueConfig))
+            {
+                queueCreator.UpdateAttributes(queue.ErrorQueue, GetErrorQueueAttributes(queueConfig));
+                queue.ErrorQueue.MessageRetentionPeriod = queueConfig.ErrorQueueRetentionPeriodSeconds;
+            }
+
+            if (QueueNeedsUpdating(queue, queueConfig))
+            {
+                queueCreator.UpdateAttributes(queue, queueConfig);
+            }
+            if (queueConfig.ErrorQueueOptOut == false && RedrivePolicyNeedsUpdating(queue, queueConfig))
+                queueCreator.UpdateRedrivePolicy(queue, queueConfig, queue.ErrorQueue);
         }
     }
 }

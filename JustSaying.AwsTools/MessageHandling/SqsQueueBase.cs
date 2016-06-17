@@ -18,6 +18,8 @@ namespace JustSaying.AwsTools.MessageHandling
         int VisibilityTimeout { get; set; }
         int DeliveryDelay { get; set; }
         RedrivePolicy RedrivePolicy { get; set; }
+
+        ISqsQueue ErrorQueue { get; set; }
     }
 
     /// <summary>
@@ -25,6 +27,12 @@ namespace JustSaying.AwsTools.MessageHandling
     /// </summary>
     class PlainSqsQueue : ISqsQueue
     {
+        public PlainSqsQueue(RegionEndpoint region, string name)
+        {
+            this.Region = region;
+            this.QueueName = name;
+        }
+
         public string Arn { get; set; }
         public string Url { get; set; }
         public string QueueName { get; set; }
@@ -33,16 +41,17 @@ namespace JustSaying.AwsTools.MessageHandling
         public int VisibilityTimeout { get; set; }
         public int DeliveryDelay { get; set; }
         public RedrivePolicy RedrivePolicy { get; set; }
+        public ISqsQueue ErrorQueue { get; set; }
     }
 
-    public abstract class SqsQueueBase : ISqsQueue
+    public abstract class SqsQueueBase 
     {
         public string Arn { get; protected set; }
         public string Url { get; protected set; }
         public IAmazonSQS Client { get; private set; }
         public string QueueName { get; protected set; }
         public RegionEndpoint Region { get; protected set; }
-        public ErrorQueue ErrorQueue { get; protected set; }
+        public ErrorQueue ErrorQueue { get; set; }
         public int MessageRetentionPeriod { get; set; }
         public int VisibilityTimeout { get; set; }
         public int DeliveryDelay { get; set; }

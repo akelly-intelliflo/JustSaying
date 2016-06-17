@@ -16,16 +16,18 @@ namespace JustSaying.AwsTools.IntegrationTests
 
         protected override void When()
         {
+            var config = GetQueueConfig();
+            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(config);
 
-            SystemUnderTest.Create(new SqsBasicConfiguration());
-
-            SystemUnderTest.UpdateRedrivePolicy(new RedrivePolicy(_newMaximumReceived, SystemUnderTest.ErrorQueue.Arn));
+            config.RetryCountBeforeSendingToErrorQueue = _newMaximumReceived;
+            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(config);
+            //SystemUnderTest.EnsureQueueAndErrorQueueExists(queue, new RedrivePolicy(_newMaximumReceived, queue.ErrorQueue.Arn));
         }
 
         [Test]
         public void TheRedrivePolicyIsUpdatedWithTheNewValue()
         {
-            Assert.AreEqual(_newMaximumReceived, SystemUnderTest.RedrivePolicy.MaximumReceives);
+            Assert.AreEqual(_newMaximumReceived, queue.RedrivePolicy.MaximumReceives);
         }
     }
 }

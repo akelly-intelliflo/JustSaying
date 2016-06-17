@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using Amazon;
 using JustBehave;
+using JustSaying.AwsTools;
 using JustSaying.AwsTools.MessageHandling;
+using JustSaying.AwsTools.QueueCreation;
 using JustSaying.Messaging.MessageHandling;
 using JustSaying.Messaging.MessageSerialisation;
 using JustSaying.TestingFramework;
@@ -52,11 +54,10 @@ namespace JustSaying.IntegrationTests.WhenRegisteringASqsSubscriber
         [Then, Timeout(70000)] // ToDo: Sorry about this, but SQS is a little slow to verify against. Can be better I'm sure? ;)
         public async Task QueueIsCreated()
         {
-            var queue = new SqsQueueByName(RegionEndpoint.EUWest1, 
-                QueueName, CreateMeABus.DefaultClientFactory().GetSqsClient(RegionEndpoint.EUWest1), 0);
+            var queueCreator = new QueueCreator(new AwsClientFactoryProxy(() => CreateMeABus.DefaultClientFactory()));
+            var config = new SqsQueueConfig(RegionEndpoint.EUWest1, QueueName);
 
-            await Patiently.AssertThatAsync(
-                queue.Exists, TimeSpan.FromSeconds(65));
+            await Patiently.AssertThatAsync(() => string.IsNullOrWhiteSpace(queueCreator.Exists(config)), TimeSpan.FromSeconds(65));
         }
 
         [TearDown]

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Security.Policy;
 using System.Threading;
 using Amazon;
 using Amazon.SQS;
@@ -11,11 +10,10 @@ using Amazon.SQS.Model;
 using Amazon.SQS.Util;
 using JustSaying.AwsTools.MessageHandling;
 using NLog;
-using NLog.Fluent;
 
 namespace JustSaying.AwsTools.QueueCreation
 {
-    class QueueCreator : IQueueCreator
+    public class QueueCreator : IQueueCreator
     {
         private static readonly Logger Log = LogManager.GetLogger("JustSaying");
         private readonly IAwsClientFactoryProxy _awsClientFactory;
@@ -25,7 +23,7 @@ namespace JustSaying.AwsTools.QueueCreation
             _awsClientFactory = awsClientFactory;
         }
 
-        public ISqsQueue CreateQueue(ISqsQueueConfig config, int attempt = 0)
+        public ISqsQueue Create(ISqsQueueConfig config, int attempt = 0)
         {
             try
             {
@@ -36,7 +34,7 @@ namespace JustSaying.AwsTools.QueueCreation
                     Attributes = GetCreateQueueAttributes(config)
                 });
 
-                var queue = FindQueue(result.QueueUrl, config);
+                var queue = Find(result.QueueUrl, config);
 
                 Log.Info(string.Format("Created Queue: {0} on Arn: {1}", queue.QueueName, queue.Arn));
                 return queue;
@@ -55,7 +53,7 @@ namespace JustSaying.AwsTools.QueueCreation
                     // Ensure we wait for queue delete timeout to expire.
                     Log.Info(string.Format("Waiting to create Queue due to AWS time restriction - Queue: {0}, AttemptCount: {1}", config.QueueName, attempt + 1));
                     Thread.Sleep(60000);
-                    return CreateQueue(config, attempt: attempt++);
+                    return Create(config, attempt: attempt++);
                 }
 
                 // Throw all errors which are not delete timeout related.
@@ -91,7 +89,31 @@ namespace JustSaying.AwsTools.QueueCreation
                 .Equals(queueName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public ISqsQueue FindQueue(string url, ISqsQueueConfig config)
+        public ISqsQueue Find(ISqsQueueConfig config)
+        {
+            var url = Exists(config);
+            if (string.IsNullOrWhiteSpace(url))
+                return null;
+            return Find(url, config);
+        }
+
+        public ISqsQueue Find(string url, RegionEndpoint region)
+        {
+            // TODO - fix
+            return Find(url, new SqsQueueConfig(region, "dummyName"));
+        }
+
+
+        public ISqsQueue Find(RegionEndpoint region, string name)
+        {
+            var exists = Exists(region, name);
+            return Find(exists, region);
+        }
+
+        /// <summary>
+        /// TODO - config here is not needed, only region. Name can be extracted
+        /// </summary>
+        public ISqsQueue Find(string url, ISqsQueueConfig config)
         {
             var attributes = GetAttrs(url, config.Region, new[]
             {
@@ -102,16 +124,16 @@ namespace JustSaying.AwsTools.QueueCreation
                 JustSayingConstants.ATTRIBUTE_VISIBILITY_TIMEOUT,
                 JustSayingConstants.ATTRIBUTE_DELIVERY_DELAY
             });
+            if (attributes == null)
+                return null;
 
-            var sqs = new PlainSqsQueue();
+            var sqs = new PlainSqsQueue(config.Region, config.QueueName);
             sqs.Url = url;
             sqs.Arn = attributes.QueueARN;
             sqs.MessageRetentionPeriod = attributes.MessageRetentionPeriod;
             sqs.VisibilityTimeout = attributes.VisibilityTimeout;
             sqs.DeliveryDelay = attributes.DelaySeconds;
             sqs.RedrivePolicy = ExtractRedrivePolicyFromQueueAttributes(attributes.Attributes);
-            sqs.QueueName = config.QueueName;
-            sqs.Region = config.Region;
             return sqs;
         }
 
@@ -138,12 +160,13 @@ namespace JustSaying.AwsTools.QueueCreation
             return result;
         }
 
-        public string Exists(ISqsQueueConfig _config)
+        public string Exists(RegionEndpoint region, string queueName)
         {
-            var _client = _awsClientFactory.GetAwsClientFactory().GetSqsClient(_config.Region);
-            var result = _client.ListQueues(new ListQueuesRequest { QueueNamePrefix = _config.QueueName });
-            Log.Info("Checking if queue '{0}' exists", _config.QueueName);
-            var url = result.QueueUrls.SingleOrDefault(x => Matches(x, _config.QueueName));
+            var _client = _awsClientFactory.GetAwsClientFactory().GetSqsClient(region);
+            var result = _client.ListQueues(new ListQueuesRequest { QueueNamePrefix = queueName });
+            Console.WriteLine($"Checking if queue '{queueName}' exists");
+            Log.Info("Checking if queue '{0}' exists", queueName);
+            var url = result.QueueUrls.SingleOrDefault(x => Matches(x, queueName));
 
             if (url != null)
             {
@@ -153,6 +176,29 @@ namespace JustSaying.AwsTools.QueueCreation
             }
 
             return string.Empty;
+        }
+
+        public string Exists(ISqsQueueConfig _config)
+        {
+            return Exists(_config.Region, _config.QueueName);
+        }
+
+        public void UpdateAttributes(ISqsQueue queue, ISqsQueueConfig config)
+        {
+            UpdateAttributes(queue, GetQueueAttributes(config));
+            queue.MessageRetentionPeriod = config.MessageRetentionSeconds;
+            queue.VisibilityTimeout = config.VisibilityTimeoutSeconds;
+            queue.DeliveryDelay = config.DeliveryDelaySeconds;
+        }
+
+        private Dictionary<string, string> GetQueueAttributes(ISqsQueueConfig queueConfig)
+        {
+            return new Dictionary<string, string>
+            {
+                {JustSayingConstants.ATTRIBUTE_RETENTION_PERIOD, queueConfig.MessageRetentionSeconds.ToString()},
+                {JustSayingConstants.ATTRIBUTE_VISIBILITY_TIMEOUT, queueConfig.VisibilityTimeoutSeconds.ToString()},
+                {JustSayingConstants.ATTRIBUTE_DELIVERY_DELAY, queueConfig.DeliveryDelaySeconds.ToString()}
+            };
         }
 
         public void UpdateAttributes(ISqsQueue queue, Dictionary<string, string> getErrorQueueAttributes)
@@ -167,6 +213,43 @@ namespace JustSaying.AwsTools.QueueCreation
 
             if (response.HttpStatusCode != HttpStatusCode.OK)
                 throw new Exception($"Could not update queue {queue.QueueName} attributes. Response status: {response.HttpStatusCode}");
+        }
+
+        public void Delete(ISqsQueue queue)
+        {
+            var _client = _awsClientFactory.GetAwsClientFactory().GetSqsClient(queue.Region);
+            _client.DeleteQueue(new DeleteQueueRequest { QueueUrl = queue.Url });
+        }
+
+        public void UpdateRedrivePolicy(ISqsQueue queue, RedrivePolicy redrivePolicy)
+        {
+            UpdateAttributes(queue, GetRedrivePolicyAttributes(redrivePolicy));
+        }
+
+        public void UpdateRedrivePolicy(ISqsQueue queue, ISqsQueueConfig queueConfig, ISqsQueue errorQueue)
+        {
+            UpdateAttributes(queue, GetRedrivePolicyAttributes(queueConfig, errorQueue));
+            queue.RedrivePolicy.MaximumReceives = queueConfig.RetryCountBeforeSendingToErrorQueue;
+        }
+
+        private Dictionary<string, string> GetRedrivePolicyAttributes(RedrivePolicy redrivePolicy)
+        {
+            return new Dictionary<string, string>
+            {
+                {
+                    JustSayingConstants.ATTRIBUTE_REDRIVE_POLICY, redrivePolicy.ToString()
+                }
+            };
+        }
+
+        private Dictionary<string, string> GetRedrivePolicyAttributes(ISqsQueueConfig queueConfig, ISqsQueue errorQueue)
+        {
+            return new Dictionary<string, string>
+            {
+                {
+                    JustSayingConstants.ATTRIBUTE_REDRIVE_POLICY, new RedrivePolicy(queueConfig.RetryCountBeforeSendingToErrorQueue, errorQueue.Arn).ToString()
+                }
+            };
         }
     }
 }

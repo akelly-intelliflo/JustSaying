@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Amazon;
 using Amazon.SQS;
-using JustSaying.AwsTools.MessageHandling;
+using JustSaying.AwsTools;
+using JustSaying.AwsTools.QueueCreation;
 using JustSaying.Messaging.MessageHandling;
 using JustSaying.TestingFramework;
 using NUnit.Framework;
@@ -46,8 +47,9 @@ namespace JustSaying.IntegrationTests
 
         private void AssertThatQueueDoesNotExist(string name)
         {
-            var sqsQueueByName = new SqsQueueByName(RegionEndpoint.EUWest1, name, _client, 1);
-            Assert.IsFalse(sqsQueueByName.Exists(), string.Format("Expecting queue '{0}' to not exist but it does.", name));
+            var queueCreator = new QueueCreator(new AwsClientFactoryProxy(() => CreateMeABus.DefaultClientFactory()));
+            var config = new SqsQueueConfig(RegionEndpoint.EUWest1, name);
+            Assert.IsEmpty(queueCreator.Exists(config), string.Format("Expecting queue '{0}' to not exist but it does.", name));
         }
     }
 }

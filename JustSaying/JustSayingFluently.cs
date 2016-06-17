@@ -273,13 +273,16 @@ namespace JustSaying
 
             foreach (var region in Bus.Config.Regions)
             {
-                _subscriptionConfig.Region = RegionEndpoint.GetBySystemName(region);
-                var queue = _amazonQueueCreator.EnsureQueueAndErrorQueueExists(_subscriptionConfig);
+                var queueConfig = _subscriptionConfig.Clone();
+                queueConfig.Region = RegionEndpoint.GetBySystemName(region);
+                var queue = _amazonQueueCreator.EnsureQueueAndErrorQueueExists(queueConfig);
 
+                var topicConfig = ((ISnsTopicConfig) _subscriptionConfig).Clone();
+                topicConfig.Region = RegionEndpoint.GetBySystemName(region);
                 // TODO - do we want to log topic arn here?
-                var topic = _amazonQueueCreator.EnsureTopicExistsWithQueueSubscribed(queue, Bus.SerialisationRegister, _subscriptionConfig);
+                var topic = _amazonQueueCreator.EnsureTopicExistsWithQueueSubscribed(queue, Bus.SerialisationRegister, topicConfig);
                 CreateSubscriptionListener<T>(region, queue);
-                Log.Info(string.Format("Created SQS topic subscription - Topic: {0}, QueueName: {1}", _subscriptionConfig.Topic, _subscriptionConfig.QueueName));
+                Log.Info(string.Format("Created SQS topic subscription - Topic: {0}, QueueName: {1}", topicConfig.Topic, queueConfig.QueueName));
             }
           
             return this;
@@ -292,10 +295,11 @@ namespace JustSaying
 
             foreach (var region in Bus.Config.Regions)
             {
-                _subscriptionConfig.Region = RegionEndpoint.GetBySystemName(region);
-                var queue = _amazonQueueCreator.EnsureQueueAndErrorQueueExists(_subscriptionConfig);
+                var config = _subscriptionConfig.Clone();
+                config.Region = RegionEndpoint.GetBySystemName(region);
+                var queue = _amazonQueueCreator.EnsureQueueAndErrorQueueExists(config);
                 CreateSubscriptionListener<T>(region, queue);
-                Log.Info(string.Format("Created SQS subscriber - MessageName: {0}, QueueName: {1}", messageTypeName, _subscriptionConfig.QueueName));
+                Log.Info(string.Format("Created SQS subscriber - MessageName: {0}, QueueName: {1}", messageTypeName, config.QueueName));
             }
            
             return this;

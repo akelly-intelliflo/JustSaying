@@ -29,7 +29,7 @@ namespace JustSaying.AwsTools.MessageHandling
     /// <summary>
     /// TODO - why is this a publiher??
     /// </summary>
-    public abstract class SnsTopicBase : IMessagePublisher
+    public abstract class SnsTopicBase2 : IMessagePublisher
     {
         private readonly IMessageSerialisationRegister _serialisationRegister; // ToDo: Grrr...why is this here even. GET OUT!
         public string Arn { get; protected set; }
@@ -37,7 +37,7 @@ namespace JustSaying.AwsTools.MessageHandling
         private static readonly Logger EventLog = LogManager.GetLogger("EventLog");
         private static readonly Logger Log = LogManager.GetLogger("JustSaying");
 
-        public SnsTopicBase(IMessageSerialisationRegister serialisationRegister)
+        public SnsTopicBase2(IMessageSerialisationRegister serialisationRegister)
         {
             _serialisationRegister = serialisationRegister;
         }

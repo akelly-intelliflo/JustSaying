@@ -11,15 +11,43 @@ namespace JustSaying.AwsTools.QueueCreation
     public interface ISqsQueueConfig
     {
         RegionEndpoint Region { get; set; }
-        int RetryCountBeforeSendingToErrorQueue { get; }
+        int RetryCountBeforeSendingToErrorQueue { get; set; }
         string QueueName { get; set; }
         bool ErrorQueueOptOut { get; set; }
-        int MessageRetentionSeconds { get; }
+        int MessageRetentionSeconds { get; set; }
         int VisibilityTimeoutSeconds { get; }
-        int DeliveryDelaySeconds { get; }
+        int DeliveryDelaySeconds { get; set; }
         ISqsQueue ErrorQueue { get; set; }
         int ErrorQueueRetentionPeriodSeconds { get; set; }
         ISqsQueueConfig Clone();
+    }
+
+    public class SqsQueueConfig : ISqsQueueConfig
+    {
+        public SqsQueueConfig(RegionEndpoint region, string queueName)
+        {
+            Region = region;
+            QueueName = queueName;
+
+            MessageRetentionSeconds = JustSayingConstants.DEFAULT_RETENTION_PERIOD;
+            ErrorQueueRetentionPeriodSeconds = JustSayingConstants.MAXIMUM_RETENTION_PERIOD;
+            VisibilityTimeoutSeconds = JustSayingConstants.DEFAULT_VISIBILITY_TIMEOUT;
+            RetryCountBeforeSendingToErrorQueue = JustSayingConstants.DEFAULT_HANDLER_RETRY_COUNT;
+        }
+
+        public RegionEndpoint Region { get; set; }
+        public int RetryCountBeforeSendingToErrorQueue { get; set; }
+        public string QueueName { get; set; }
+        public bool ErrorQueueOptOut { get; set; }
+        public int MessageRetentionSeconds { get; set; }
+        public int VisibilityTimeoutSeconds { get; set; }
+        public int DeliveryDelaySeconds { get; set; }
+        public ISqsQueue ErrorQueue { get; set; }
+        public int ErrorQueueRetentionPeriodSeconds { get; set; }
+        public ISqsQueueConfig Clone()
+        {
+            return MemberwiseClone() as ISqsQueueConfig;
+        }
     }
 
     public interface ISnsTopicConfig
@@ -27,6 +55,7 @@ namespace JustSaying.AwsTools.QueueCreation
         RegionEndpoint Region { get; set; }
         string Topic { get; set; }
         string PublishEndpoint { get; set; }
+        ISnsTopicConfig Clone();
     }
 
 
@@ -50,6 +79,11 @@ namespace JustSaying.AwsTools.QueueCreation
             return MemberwiseClone() as ISqsQueueConfig;
         }
 
+        ISnsTopicConfig ISnsTopicConfig.Clone()
+        {
+            return MemberwiseClone() as ISnsTopicConfig;
+        }
+
         /// <summary>
         /// TODO - not set anywhere
         /// </summary>
@@ -59,6 +93,8 @@ namespace JustSaying.AwsTools.QueueCreation
         public string BaseTopicName { get; set; }
         public string Topic { get; set; }
         public string PublishEndpoint { get; set; }
+
+       
 
         public int? InstancePosition { get; set; }
         public int? MaxAllowedMessagesInFlight { get; set; }

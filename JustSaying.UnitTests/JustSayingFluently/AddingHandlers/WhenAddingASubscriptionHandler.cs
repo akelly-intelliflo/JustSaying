@@ -1,5 +1,6 @@
 ﻿using System;
 using JustBehave;
+using JustSaying.AwsTools.MessageHandling;
 using JustSaying.AwsTools.QueueCreation;
 using JustSaying.Messaging;
 using JustSaying.Messaging.MessageHandling;
@@ -29,10 +30,19 @@ namespace JustSaying.UnitTests.JustSayingFluently.AddingHandlers
         }
 
         [Then]
-        public void TheTopicAndQueueIsCreatedInEachRegion()
+        public void TheTopicAndQueueIsCreatedInDefaultRegion()
         {
-            QueueVerifier.Received().EnsureTopicExistsWithQueueSubscribed("defaultRegion", Bus.SerialisationRegister, Arg.Any<SqsReadConfiguration>());
-            QueueVerifier.Received().EnsureTopicExistsWithQueueSubscribed("failoverRegion", Bus.SerialisationRegister, Arg.Any<SqsReadConfiguration>());
+            var region = "defaultRegion";
+            QueueVerifier.Received().EnsureQueueAndErrorQueueExists(Arg.Is<ISqsQueueConfig>(x => x.Region.SystemName == region));
+            QueueVerifier.Received().EnsureTopicExistsWithQueueSubscribed(Arg.Any<ISqsQueue>(), Bus.SerialisationRegister, Arg.Is<ISnsTopicConfig>(c => c.Region.SystemName == region));
+        }
+
+        [Then]
+        public void TheTopicAndQueueIsCreatedInFailoverRegion()
+        {
+            var region = "failoverRegion";
+            QueueVerifier.Received().EnsureQueueAndErrorQueueExists(Arg.Is<ISqsQueueConfig>(x => x.Region.SystemName == region));
+            QueueVerifier.Received().EnsureTopicExistsWithQueueSubscribed(Arg.Any<ISqsQueue>(), Bus.SerialisationRegister, Arg.Is<ISnsTopicConfig>(c => c.Region.SystemName == region));
         }
 
         [Then]

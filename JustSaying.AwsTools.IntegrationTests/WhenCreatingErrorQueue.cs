@@ -1,40 +1,54 @@
 using System;
+using System.Threading;
 using Amazon;
 using JustBehave;
+using JustSaying.AwsTools.MessageHandling;
 using JustSaying.AwsTools.QueueCreation;
 using NUnit.Framework;
 
 namespace JustSaying.AwsTools.IntegrationTests
 {
-    public  class WhenCreatingErrorQueue : BehaviourTest<ErrorQueue>
+    public class WhenCreatingErrorQueue : BehaviourTest<AmazonQueueCreator>
     {
         protected string QueueUniqueKey;
+        protected ISqsQueue queue;
 
         protected override void Given()
         { }
-        protected override void When()
+
+        protected ISqsQueueConfig GetQueueConfig()
         {
-
-            SystemUnderTest.Create(new SqsBasicConfiguration { ErrorQueueRetentionPeriodSeconds = JustSayingConstants.MAXIMUM_RETENTION_PERIOD, ErrorQueueOptOut = true});
-
-            SystemUnderTest.UpdateQueueAttribute(new SqsBasicConfiguration { ErrorQueueRetentionPeriodSeconds = 100 });
+            return new SqsQueueConfig(RegionEndpoint.EUWest1, QueueUniqueKey);
         }
 
-        protected override ErrorQueue CreateSystemUnderTest()
+        protected override void When()
+        {
+            var config = GetQueueConfig();
+            config.ErrorQueueRetentionPeriodSeconds = JustSayingConstants.MAXIMUM_RETENTION_PERIOD;
+            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(config);
+
+            config.ErrorQueueRetentionPeriodSeconds = 100;
+            SystemUnderTest.Update(queue, config);
+        }
+
+        protected override AmazonQueueCreator CreateSystemUnderTest()
         {
             QueueUniqueKey = "test" + DateTime.Now.Ticks;
-            return new ErrorQueue(RegionEndpoint.EUWest1, QueueUniqueKey, CreateMeABus.DefaultClientFactory().GetSqsClient(RegionEndpoint.EUWest1));
+            var queueVerifier = new AmazonQueueCreator(new AwsClientFactoryProxy(() => CreateMeABus.DefaultClientFactory()));
+            queueVerifier.QueueCache = new NullCache<ISqsQueue>();
+            queueVerifier.TopicCache = new NullCache<ISnsTopic>();
+            return queueVerifier;
         }
         public override void PostAssertTeardown()
         {
-            SystemUnderTest.Delete();
+            SystemUnderTest.Delete(queue);
             base.PostAssertTeardown();
         }
 
         [Test]
         public void TheRetentionPeriodOfTheErrorQueueStaysAsMaximum()
         {
-            Assert.AreEqual(100, SystemUnderTest.MessageRetentionPeriod);
+            Assert.AreEqual(100, queue.ErrorQueue.MessageRetentionPeriod);
         }
     }
 }

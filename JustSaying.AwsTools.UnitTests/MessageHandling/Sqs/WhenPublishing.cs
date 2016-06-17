@@ -10,7 +10,7 @@ using NSubstitute;
 
 namespace JustSaying.AwsTools.UnitTests.MessageHandling.Sqs
 {
-    public class WhenPublishing : BehaviourTest<SqsPublisher>
+    public class WhenPublishing : BehaviourTest<PlainSqsPublisher>
     {
         private readonly IMessageSerialisationRegister _serialisationRegister = Substitute.For<IMessageSerialisationRegister>();
         private readonly IAmazonSQS _sqs = Substitute.For<IAmazonSQS>();
@@ -18,10 +18,10 @@ namespace JustSaying.AwsTools.UnitTests.MessageHandling.Sqs
         private readonly GenericMessage _message = new GenericMessage {Content = "Hello"};
         private const string QueueName = "queuename";
 
-        protected override SqsPublisher CreateSystemUnderTest()
+        protected override PlainSqsPublisher CreateSystemUnderTest()
         {
-            var sqs = new SqsPublisher(RegionEndpoint.EUWest1, QueueName, _sqs, 0, _serialisationRegister);
-            sqs.Exists();
+            var queue = new PlainSqsQueue(RegionEndpoint.EUWest1, QueueName);
+            var sqs = new PlainSqsPublisher(queue, _sqs, _serialisationRegister);
             return sqs;
         }
 
