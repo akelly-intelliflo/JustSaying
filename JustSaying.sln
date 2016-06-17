@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
@@ -40,6 +39,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{0BCF7F
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Consumer", "samples\Consumer\Consumer.csproj", "{66234649-64CC-4E01-A9E8-EC3CCDB401F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JustBehave", "..\JustBehave\src\JustBehave\JustBehave.csproj", "{226465BD-C58A-4723-AA6E-8C48ABBAD4C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Package", "Package", "{80A7639E-30B7-4C4A-86C1-320351D4500A}"
+	ProjectSection(SolutionItems) = preProject
+		..\JustBehave\src\CONTRIBUTING.md = ..\JustBehave\src\CONTRIBUTING.md
+		..\JustBehave\src\JustBehave.ndproj = ..\JustBehave\src\JustBehave.ndproj
+		..\JustBehave\src\LICENSE.md = ..\JustBehave\src\LICENSE.md
+		..\JustBehave\src\README.md = ..\JustBehave\src\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{A2BB5172-3513-46F2-ACD5-7565DA15F368}"
+	ProjectSection(SolutionItems) = preProject
+		..\JustBehave\src\.nuget\NuGet.Config = ..\JustBehave\src\.nuget\NuGet.Config
+		..\JustBehave\src\.nuget\NuGet.exe = ..\JustBehave\src\.nuget\NuGet.exe
+		..\JustBehave\src\.nuget\NuGet.targets = ..\JustBehave\src\.nuget\NuGet.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -95,8 +111,15 @@ Global
 		{66234649-64CC-4E01-A9E8-EC3CCDB401F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66234649-64CC-4E01-A9E8-EC3CCDB401F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{66234649-64CC-4E01-A9E8-EC3CCDB401F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{226465BD-C58A-4723-AA6E-8C48ABBAD4C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{226465BD-C58A-4723-AA6E-8C48ABBAD4C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{226465BD-C58A-4723-AA6E-8C48ABBAD4C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{226465BD-C58A-4723-AA6E-8C48ABBAD4C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NDepend) = preSolution
+		Project = ".\JustBehave.ndproj"
 	EndGlobalSection
 EndGlobal

@@ -20,8 +20,7 @@ namespace JustSaying.AwsTools.IntegrationTests
             queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(config);
 
             config.RetryCountBeforeSendingToErrorQueue = _newMaximumReceived;
-            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(config);
-            //SystemUnderTest.EnsureQueueAndErrorQueueExists(queue, new RedrivePolicy(_newMaximumReceived, queue.ErrorQueue.Arn));
+            SystemUnderTest.Update(queue, config);
         }
 
         [Test]

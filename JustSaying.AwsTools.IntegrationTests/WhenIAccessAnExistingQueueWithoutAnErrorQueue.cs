@@ -9,7 +9,9 @@ namespace JustSaying.AwsTools.IntegrationTests
     {
         protected override void When()
         {
-            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(GetQueueConfig());
+            var config = GetQueueConfig();
+            config.ErrorQueueOptOut = true;
+            queue = SystemUnderTest.EnsureQueueAndErrorQueueExists(config);
         }
 
         [Then]

@@ -33,7 +33,6 @@ namespace JustSaying.AwsTools.UnitTests.MessageHandling.SqsNotificationListener
 
         protected override AwsTools.MessageHandling.SqsNotificationListener CreateSystemUnderTest()
         {
-            Sqs = Substitute.For<IAmazonSQS>();
             _awsClientFactory = new MockedAwsClientFactory(Sqs);
             var queue = new PlainSqsQueue(RegionEndpoint.EUWest1, QueueUrl);
             return new AwsTools.MessageHandling.SqsNotificationListener(queue, SerialisationRegister, Monitor, _awsClientFactory, null, MessageLock);
@@ -43,6 +42,7 @@ namespace JustSaying.AwsTools.UnitTests.MessageHandling.SqsNotificationListener
         {
             Logging.ToConsole();
 
+            Sqs = Substitute.For<IAmazonSQS>();
             SerialisationRegister = Substitute.For<IMessageSerialisationRegister>();
             Monitor = Substitute.For<IMessageMonitor>();
             Handler = Substitute.For<IHandlerAsync<GenericMessage>>();
