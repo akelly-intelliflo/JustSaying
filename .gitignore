@@ -114,3 +114,7 @@ AWSSDK.1.5.25.0.nuspec
 
 Gemfile.lock
 *.orig
+
+# NUNIT
+*.VisualState.xml
+TestResult.xml
