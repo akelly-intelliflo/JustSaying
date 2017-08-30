@@ -165,7 +165,26 @@ namespace JustSaying.AwsTools.MessageHandling
                         MaxNumberOfMessages = numberOfMessagesToReadFromSqs,
                         WaitTimeSeconds = 20
                     };
-                var sqsMessageResponse = await _queue.Client.ReceiveMessageAsync(request, ct);
+
+                var receiveTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                ReceiveMessageResponse sqsMessageResponse;
+
+                try
+                {
+                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, receiveTimeout.Token))
+                    {
+                        sqsMessageResponse = await _queue.Client.ReceiveMessageAsync(request, linkedCts.Token)
+                            .ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    if (receiveTimeout.Token.IsCancellationRequested)
+                    {
+                        // this should only occur if the AWS sdk doesn't return within the 20 second long poll (found to occur on network failure)
+                        Log.Error($"Receiving messages from queue {queueName}, region {region}, timed out");
+                    }
+                }           
 
                 watch.Stop();
 
