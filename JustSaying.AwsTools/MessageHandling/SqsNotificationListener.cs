@@ -166,6 +166,9 @@ namespace JustSaying.AwsTools.MessageHandling
                         WaitTimeSeconds = 20
                     };
 
+                // Manual merge of error handling around the aws sdk ReceiveMessageAsync from the master branch in to branch iflo_nuget
+                // https://github.com/Intelliflo/JustSaying/blob/master/JustSaying/AwsTools/MessageHandling/SqsNotificationListener.cs
+
                 var receiveTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
                 ReceiveMessageResponse sqsMessageResponse;
 
